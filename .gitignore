@@ -1,0 +1,26 @@
+### JetBrains IntelliJ platform directories and files
+out/
+.idea/
+*.iws
+*.iml
+
+# Cursive Clojure plugin
+.idea/replstate.xml
+
+### Leiningen template
+lib/
+classes/
+target/
+checkouts/
+.lein-*
+.nrepl-port
+.cpcache/
+pom.xml
+
+# Node.js dependencies
+node_modules/
+
+# shadow-cljs cache, port files
+.shadow-cljs/
+
+.clj-kondo/cache/
