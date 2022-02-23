@@ -1,8 +1,7 @@
 (ns lein-git-revisions.plugin
   (:require [clojure.java.shell :refer [with-sh-dir]]
             [clojure.string :as str]
-            [cuddlefish.core :as git]
-            [leiningen.core.main :refer [info warn debug]])
+            [cuddlefish.core :as git])
   (:import (java.util.regex Matcher Pattern)))
 
 (defn map->nsmap
@@ -15,17 +14,14 @@
 
   Originally from [StackOverflow Q#44523 A#43722784](https://stackoverflow.com/a/43722784/44523)"
   [m n]
-  (let [namespaced
-        (reduce-kv (fn [acc k v]
-                     (let [new-kw (if (and (keyword? k)
-                                           (not (qualified-keyword? k)))
-                                    (keyword (str n) (name k))
-                                    k)]
-                       (assoc acc new-kw v)))
-                   {}
-                   m)]
-    (debug "Available keys" namespaced)
-    namespaced))
+  (reduce-kv (fn [acc k v]
+               (let [new-kw (if (and (keyword? k)
+                                     (not (qualified-keyword? k)))
+                              (keyword (str n) (name k))
+                              k)]
+                 (assoc acc new-kw v)))
+             {}
+             m))
 
 (defn adjust-value
   [value adjust]
@@ -136,7 +132,6 @@
         (cond (keyword? format) (get predefined-formats format)
               (map? format)     format) ; TODO: else "unsupported format <blaa>"
 
-        _                    (debug "Will use configuration " config)
         lookup               (some-fn (map->nsmap constants "constants")
                                       (map->nsmap git "git")
                                       (lookup-group (re-matcher (or tag-pattern #"$^") (or tag "")))
