@@ -24,7 +24,7 @@
                        (assoc acc new-kw v)))
                    {}
                    m)]
-    (debug "Available keys " namespaced)
+    (debug "Available keys" namespaced)
     namespaced))
 
 (defn adjust-value
@@ -112,34 +112,44 @@
                  v
                  )))))
 
+(defn create-adjustments
+  [adjustments lookup adjust-key]
+  (let [adjust      (or adjust-key [])
+        adjustments (or adjustments {})]
+    (->> (if-not (vector? adjust) (vector adjust) adjust)
+         (map
+           (fn [k]
+             (adjustments (or (some-> (lookup k) keyword)
+                              k))))
+         (filter (complement nil?))
+         first)))
 
 (defn revision-generator
   [{:keys [tag] :as git}
-   config
-   adjust-key]
+   format
+   adjust]
   (let [git (merge git
                    (when (nil? git) {:unversioned? true})
                    (when (nil? tag) {:untagged?    true}))
 
         {:keys [tag-pattern pattern constants adjustments] :as config}
-        (get predefined-formats (:format config) config) ; TODO: get needs default
+        (cond (keyword? format) (get predefined-formats format)
+              (map? format)     format) ; TODO: else "unsupported format <blaa>"
 
         _                    (debug "Will use configuration " config)
         lookup               (some-fn (map->nsmap constants "constants")
                                       (map->nsmap git "git")
-                                      (lookup-group (re-matcher tag-pattern (or tag "")))
+                                      (lookup-group (re-matcher (or tag-pattern #"$^") (or tag "")))
                                       lookup-gen
                                       lookup-env)
-        adjustments          (-> (or (some-> (lookup adjust-key) keyword)
-                                     adjust-key)
-                                 (adjustments {}))
+        adjustments          (create-adjustments adjustments lookup adjust)
         into-version-segment (resolve-and-adjust lookup adjustments)]
     (reduce
       (fn [acc [directive format]]
         (str acc (case directive
-                   :segment/always (reduce into-version-segment format)
-                   :segment/when (when (lookup (first format))
-                                   (reduce into-version-segment "" (rest format)))
+                   :segment/always (reduce into-version-segment "" format)
+                   :segment/when   (when (lookup (first format))
+                                     (reduce into-version-segment "" (rest format)))
                    "")))  ; TODO: what could be good default?
       ""
       (partition 2 pattern))))
@@ -147,19 +157,24 @@
 
 (defn middleware
   ; TODO: some minimal default config
-  ; TODO: adjust injection from env/props?
   [{:keys           [git-revisions root]
     :as             project}]
   (with-sh-dir root
-    (let [git-config {:git               "git"
-                      :describe-pattern  git/git-describe-pattern}
-          git-context (-> (git/status git-config)
-                          (dissoc :version)
-                          (assoc :branch (git/current-branch git-config)))]
+    (let [{:keys [format adjust]} git-revisions
+          git-config              {:git               "git"
+                                   :describe-pattern  git/git-describe-pattern}
+          git-context             (-> (git/status git-config)
+                                      (dissoc :version)
+                                      (assoc :branch (git/current-branch git-config)))]
 
   (-> project
-      (assoc :version (revision-generator git-context git-revisions :minor))))))
+      (assoc :version (revision-generator git-context format adjust))))))
 
 (revision-generator {:tag "v0.0.0-alpha1" :ahead? true :ref-short "12ab34cd"}
-                    {:format :semver}
+                    :semver
                     :minor)
+
+(revision-generator {:tag "yessir" :ahead? true :ref-short "12ab34cd"}
+                    {:pattern [:segment/always [:constants/coca-cola]]
+                     :constants {:coca-cola "Pepsi"}}
+                    nil)
