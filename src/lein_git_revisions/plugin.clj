@@ -164,12 +164,3 @@
 
   (-> project
       (assoc :version (revision-generator git-context format adjust))))))
-
-(revision-generator {:tag "v0.0.0-alpha1" :ahead? true :ref-short "12ab34cd"}
-                    :semver
-                    :minor)
-
-(revision-generator {:tag "yessir" :ahead? true :ref-short "12ab34cd"}
-                    {:pattern [:segment/always [:constants/coca-cola]]
-                     :constants {:coca-cola "Pepsi"}}
-                    nil)
