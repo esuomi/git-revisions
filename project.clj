@@ -9,4 +9,5 @@
 
   :plugins [[lein-git-revisions "LATEST"]]
 
-  :git-revisions {:format :semver})
+  :git-revisions {:format :semver
+                  :adjust [:env/project_revision_adjustment :minor]})
