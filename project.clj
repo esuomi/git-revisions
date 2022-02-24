@@ -16,4 +16,4 @@
   ;:plugins [[fi.polycode/lein-git-revisions "0.0.0"]]
 
   :git-revisions {:format :semver
-                  :adjust [:env/project_revision_adjustment :minor]})
+                  :adjust [:env/lein_revisions_adjustments :minor]})

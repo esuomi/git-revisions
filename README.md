@@ -128,16 +128,24 @@ Vector of segments expressed as implicit, ordered pairing of segment directives 
  - `:segment/always` is always included in the revision string
  - `:segment/when` inspects the first value of the vector and based on its truthiness includes the following parts in
    the resulting revision string
+ - `:segment/when-not` complement of `:segment/when`
  - Strings are always included as-is
 
 ```clojure
-{:format {:pattern [:segment/when [:env/kenobi "Hello there."]
-                    :segment/when [:env/grievous "General Kenobi!"]]}}
+{:format {:pattern [:segment/when     [:env/kenobi "Hello there."]
+                    :segment/when     [:env/grievous " General Kenobi!"]]}}
 ; When environment variable KENOBI is set, produces "Hello there."
 ; When environment variable GRIEVOUS is set, produces "General Kenobi!"
 ; When neither are set, an empty string is produced.
-; When both are set, both are included as is; "Hello there.General Kenobi!"
+; When both are set, both are included as is; "Hello there. General Kenobi!"
 ```
+or more practical
+```clojure
+; only CI can build non-snapshots, optionally including pre-release tag
+{:format {:pattern [:segment/when-not [:env/ci "-SNAPSHOT"]
+                    :segment/when     [:env/lein_revisions_prerelease "-" :env/lein_revisions_prerelease]]}}
+```
+
 
 #### Revision adjustments (`:adjustments`)
 

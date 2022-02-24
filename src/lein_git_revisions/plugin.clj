@@ -31,11 +31,12 @@
     value))
 
 (def predefined-formats {:semver {:tag-pattern #"v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+).*$"
-                                  :pattern     [:segment/when [:git/untagged? :constants/unknown]
-                                                :segment/when [:git/tag :rev/major "." :rev/minor "." :rev/patch]
-                                                :segment/when [:git/ahead? "-" :constants/ahead]
-                                                :segment/when [:git/ref-short "+" :git/ref-short]
-                                                :segment/when [:git/unversioned? "+" :constants/unversioned]]
+                                  :pattern     [:segment/when     [:git/untagged? :constants/unknown]
+                                                :segment/when     [:git/tag :rev/major "." :rev/minor "." :rev/patch]
+                                                :segment/when-not [:env/lein_revisions_release "-" :constants/ahead]
+                                                :segment/when     [:env/lein_revisions_prerelease "-" :env/lein_revisions_prerelease]
+                                                :segment/when     [:git/ref-short "+" :git/ref-short]
+                                                :segment/when     [:git/unversioned? "+" :constants/unversioned]]
                                   :adjustments {:major {:rev/major :inc :rev/minor :clear :rev/patch :clear}
                                                 :minor {:rev/minor :inc :rev/patch :clear}
                                                 :patch {:rev/patch :inc}}
@@ -142,9 +143,11 @@
     (reduce
       (fn [acc [directive format]]
         (str acc (case directive
-                   :segment/always (reduce into-version-segment "" format)
-                   :segment/when   (when (lookup (first format))
-                                     (reduce into-version-segment "" (rest format)))
+                   :segment/always   (reduce into-version-segment "" format)
+                   :segment/when     (when (lookup (first format))
+                                       (reduce into-version-segment "" (rest format)))
+                   :segment/when-not (when-not (lookup (first format))
+                                       (reduce into-version-segment "" (rest format)))
                    "")))  ; TODO: what could be good default?
       ""
       (partition 2 pattern))))
