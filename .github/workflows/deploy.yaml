@@ -4,10 +4,6 @@ on:
     branches:
       - master
 
-env:
-  CI: yes
-  LEIN_REVISIONS_RELEASE: yes
-
 jobs:
   clojure:
     runs-on: ubuntu-latest
@@ -29,11 +25,17 @@ jobs:
         with:
           lein: latest
 
+      - name: Detect release branch
+        if: ${{ github.ref == 'refs/heads/master' }}
+        env:
+          LEIN_REVISIONS_RELEASE: true
+
       - name: Deploy to Clojars
         run: lein deploy clojars
         env:
           CLOJARS_USERNAME: ${{ secrets.CLOJARS_USERNAME }}
           CLOJARS_TOKEN: ${{ secrets.CLOJARS_TOKEN }}
+          LEIN_REVISIONS_ADJUSTMENTS: patch
 
       - name: Extract version
         id: version
