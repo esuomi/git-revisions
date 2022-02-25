@@ -15,7 +15,7 @@
                                     :username      :env/CLOJARS_USERNAME
                                     :password      :env/CLOJARS_TOKEN}]]
 
-  :plugins [[fi.polycode/lein-git-revisions "0.2.0"]
+  :plugins [[fi.polycode/lein-git-revisions "LATEST"]
             [lein-pprint "1.3.2"]]
 
   :git-revisions {:format :semver
