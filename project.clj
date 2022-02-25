@@ -13,7 +13,7 @@
                                     :username      :env/CLOJARS_USERNAME
                                     :password      :env/CLOJARS_TOKEN}]]
 
-  :plugins [[fi.polycode/lein-git-revisions "LATEST"]]
+  ;:plugins [[fi.polycode/lein-git-revisions "LATEST"]]
 
   :git-revisions {:format :semver
                   :adjust [:env/lein_revisions_adjustments :minor]})
