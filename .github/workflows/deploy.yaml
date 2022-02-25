@@ -39,12 +39,6 @@ jobs:
         id: version
         run: echo "::set-output name=version::$(lein pprint :version | tr -d '\"')"
 
-      - name: Tag the release
-        uses: tvdias/github-tagger@v0.0.1
-        with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
-          tag: ${{steps.version.outputs.version }}
-
       - name: Create tag
         uses: actions/github-script@v6
         with:
@@ -52,6 +46,6 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: "refs/tags/v${{steps.version.outputs.version }}",
+              ref: "refs/tags/v${{steps.version.outputs.version}}",
               sha: context.sha
             })
