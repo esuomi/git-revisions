@@ -31,7 +31,7 @@ jobs:
 
       - name: Extract version
         id: version
-        run: echo "::set-output version=::$(lein pprint :version | tr -d '\"')"
+        run: echo "::set-output name=version::$(lein pprint :version | tr -d '\"')"
 
       - name: Tag the release
         uses: tvdias/github-tagger@v0.0.1
