@@ -4,6 +4,10 @@ on:
     branches:
       - master
 
+env:
+  CI: yes
+  LEIN_REVISIONS_RELEASE: yes
+
 jobs:
   clojure:
     runs-on: ubuntu-latest
