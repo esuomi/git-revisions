@@ -29,9 +29,6 @@ jobs:
         with:
           lein: latest
 
-      - name: Debug Actions worker
-        run: git describe --tags --dirty --long
-
       - name: Deploy to Clojars
         run: lein deploy clojars
         env:
