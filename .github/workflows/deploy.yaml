@@ -27,6 +27,7 @@ jobs:
 
       - name: Detect release branch
         if: ${{ github.ref == 'refs/heads/master' }}
+        run: echo "Build set to RELEASE"
         env:
           LEIN_REVISIONS_RELEASE: true
 
