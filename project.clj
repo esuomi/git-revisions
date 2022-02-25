@@ -1,4 +1,4 @@
-(defproject fi.polycode/lein-git-revisions "0.1.0-SNAPSHOT"
+(defproject fi.polycode/lein-git-revisions "_"
   :description "Automatically control Leiningen project version based on Git metadata."
   :url "https://github.com/esuomi/lein-git-revisions"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
@@ -13,7 +13,7 @@
                                     :username      :env/CLOJARS_USERNAME
                                     :password      :env/CLOJARS_TOKEN}]]
 
-  :plugins [#_[fi.polycode/lein-git-revisions "LATEST"]
+  :plugins [[fi.polycode/lein-git-revisions "0.1.0-SNAPSHOT"]
             [lein-pprint "1.3.2"]]
 
   :git-revisions {:format :semver
