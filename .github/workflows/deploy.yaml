@@ -25,12 +25,6 @@ jobs:
         with:
           lein: latest
 
-      - name: Detect release branch
-        if: ${{ github.ref == 'refs/heads/master' }}
-        run: |
-          echo "LEIN_REVISIONS_RELEASE=true" >> $GITHUB_ENV
-          echo "LEIN_REVISIONS_PRERELEASE=true" >> $GITHUB_ENV
-
       # eventually this will have something better, for now this is fine
       - name: Detect revision increment adjustment
         run: echo "LEIN_REVISIONS_ADJUSTMENTS=patch" >> $GITHUB_ENV
