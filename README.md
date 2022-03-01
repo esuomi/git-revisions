@@ -210,6 +210,7 @@ alternative libraries already available which solve this same issue but in a dif
 
 - [arrdem/lein-git-version](https://github.com/arrdem/lein-git-version/)
 - [day8/lein-git-inject](https://github.com/day8/lein-git-inject)
+- [devth/lein-inferv](https://github.com/devth/lein-inferv)
 
 The main two differences compared to the ones above are
 
