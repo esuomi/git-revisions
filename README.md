@@ -1,14 +1,6 @@
 # lein-git-revisions
 
-**Latest:**
-
 [![Deploy to Clojars](https://github.com/esuomi/lein-git-revisions/actions/workflows/deploy.yaml/badge.svg)](https://github.com/esuomi/lein-git-revisions/actions/workflows/deploy.yaml)
-![Clojars Version (including pre-releases)](https://img.shields.io/clojars/v/fi.polycode/lein-git-revisions?include_prereleases)
-[![cljdoc badge](https://cljdoc.org/badge/fi.polycode/lein-git-revisions)](https://cljdoc.org/jump/release/fi.polycode/lein-git-revisions)
-
-**Stable:**
-
-[![Deploy to Clojars](https://github.com/esuomi/lein-git-revisions/actions/workflows/release.yaml/badge.svg)](https://github.com/esuomi/lein-git-revisions/actions/workflows/release.yaml)
 ![Clojars Version (including pre-releases)](https://img.shields.io/clojars/v/fi.polycode/lein-git-revisions)
 [![cljdoc badge](https://cljdoc.org/badge/fi.polycode/lein-git-revisions)](https://cljdoc.org/jump/release/fi.polycode/lein-git-revisions)
 
