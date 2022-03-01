@@ -1,4 +1,4 @@
-name: Deploy to Clojars
+name: Deploy latest SNAPSHOT to Clojars
 on:
   push:
     branches:
@@ -27,7 +27,9 @@ jobs:
 
       - name: Detect release branch
         if: ${{ github.ref == 'refs/heads/master' }}
-        run: echo "LEIN_REVISIONS_RELEASE=true" >> $GITHUB_ENV
+        run: |
+          echo "LEIN_REVISIONS_RELEASE=true" >> $GITHUB_ENV
+          echo "LEIN_REVISIONS_PRERELEASE=true" >> $GITHUB_ENV
 
       # eventually this will have something better, for now this is fine
       - name: Detect revision increment adjustment
@@ -39,17 +41,17 @@ jobs:
           CLOJARS_USERNAME: ${{ secrets.CLOJARS_USERNAME }}
           CLOJARS_TOKEN: ${{ secrets.CLOJARS_TOKEN }}
 
-      - name: Extract version
-        id: version
-        run: echo "::set-output name=version::$(lein pprint :version | tr -d '\"')"
-
-      - name: Create tag
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: "refs/tags/v${{steps.version.outputs.version}}",
-              sha: context.sha
-            })
+      #- name: Extract version
+      #  id: version
+      #  run: echo "::set-output name=version::$(lein pprint :version | tr -d '\"')"
+#
+      #- name: Create tag
+      #  uses: actions/github-script@v6
+      #  with:
+      #    script: |
+      #      github.rest.git.createRef({
+      #        owner: context.repo.owner,
+      #        repo: context.repo.repo,
+      #        ref: "refs/tags/v${{steps.version.outputs.version}}",
+      #        sha: context.sha
+      #      })
