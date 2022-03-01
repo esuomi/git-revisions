@@ -2,7 +2,9 @@
   (:require [clojure.java.shell :refer [with-sh-dir]]
             [clojure.string :as str]
             [cuddlefish.core :as git])
-  (:import (java.util.regex Matcher Pattern)))
+  (:import (java.util.regex Matcher Pattern)
+           (java.time LocalDateTime Clock Year Month LocalDate)
+           (java.time.format DateTimeFormatter)))
 
 (defn map->nsmap
   "Namespaces all non-namespaced keys in the given map.
@@ -35,14 +37,15 @@
                                                 :segment/when     [:git/tag :rev/major "." :rev/minor "." :rev/patch]
                                                 :segment/when-not [:env/lein_revisions_release "-" :constants/ahead]
                                                 :segment/when     [:env/lein_revisions_prerelease "-" :env/lein_revisions_prerelease]
-                                                :segment/when-not [:env/lein_revisions_release "+" :git/ref-short]
-                                                :segment/when     [:git/unversioned? "+" :constants/unversioned]]
+                                                :segment/when     [:git/unversioned? "-" :constants/unversioned]]
                                   :adjustments {:major {:rev/major :inc :rev/minor :clear :rev/patch :clear}
                                                 :minor {:rev/minor :inc :rev/patch :clear}
                                                 :patch {:rev/patch :inc}}
                                   :constants   {:ahead       "SNAPSHOT"
                                                 :unknown     "UNKNOWN"
-                                                :unversioned "UNVERSIONED"}}})
+                                                :unversioned "UNVERSIONED"}}
+                         :commit-hash {:format {:pattern [:segment/when-not [:git/unversioned? :git/ref]
+                                                          :segment/when     [:git/unversioned? "UNKNOWN"]]}}})
 
 (defn lookup-env
   [part]
@@ -79,6 +82,34 @@
       (try (.group matcher (name part))
            (catch IllegalStateException ise
              nil)))))
+
+(def ^:dynamic ^Clock *clock*
+  "Bindable [java.time.Clock](https://docs.oracle.com/javase/8/docs/api/java/time/Clock.html) reference mainly for
+  testing purposes."
+  (Clock/systemDefaultZone))
+
+(defn- format-as
+  [pattern dt]
+  (.format (DateTimeFormatter/ofPattern pattern) dt))
+
+(defmulti dt-formatter (fn [pattern _] pattern))
+
+(defmethod dt-formatter "yyyy" [_ d] (format "%04d" (-> (Year/from d) .getValue)))
+(defmethod dt-formatter "yy" [_ d] (-> (Year/from d) (.minusYears 2000) .getValue str))
+(defmethod dt-formatter "y0" [_ d] (format "%02d" (-> (Year/from d) (.minusYears 2000) .getValue)))
+(defmethod dt-formatter "mm" [_ d] (format-as "M" d))
+(defmethod dt-formatter "m0" [_ d] (format "%02d" (-> (Month/from d) .getValue)))
+(defmethod dt-formatter "ww" [_ d] (format-as "w" d))
+(defmethod dt-formatter "w0" [_ d] (format-as "ww" d))
+(defmethod dt-formatter "dd" [_ d] (format-as "d" d))
+(defmethod dt-formatter "d0" [_ d] (format-as "dd" d))
+
+(defn lookup-calver
+  "[CalVer](https://calver.org/) pattern lookup, wherein the `part` is normalized to lowercase to support both
+  semantically correct patterns and Clojure's keyword idioms."
+  [part]
+  (when (= "calver" (namespace part))
+    (dt-formatter (str/lower-case (name part)) (LocalDate/now *clock*))))
 
 (defn- resolve-part
   "Resolve a single revision `part` possibly using the provided `lookup function`. Returns either the resolved
@@ -126,8 +157,8 @@
    format
    adjust]
   (let [git (merge git
-                   (when (nil? git) {:unversioned? true})
-                   (when (nil? tag) {:untagged?    true}))
+                   {:unversioned? (nil? git)}
+                   {:untagged?    (nil? tag)})
 
         {:keys [tag-pattern pattern constants adjustments] :as config}
         (cond (keyword? format) (get predefined-formats format)
