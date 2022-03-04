@@ -123,9 +123,11 @@ example `:env/user` looks up the value of environment variable `USER`.
  - `:rev/*` Lookup a value from [Tag pattern](#tag-pattern-tag-pattern) based on named capture group
  - `:git/*` Properties matching the current Git state, such as previous tag, versioning status, ahead/dirty...
  - `:constants/*` See [Common constants](#common-constants-constants)
- - `:gen/*` Miscellanous values generated during runtime
  - `:calver/*` Support [Calendar Versioning](https://calver.org/) patterns. Note that due to Clojure keyword limitations
    the zero-padding patterns are flipped, so `0M` is `:calver/m0` and so on.
+ - `:dt/*` Common datetime parts, from current year to current second.
+
+More in-depth documentation for lookups is available in [Available Lookups](docs/lookups.md).
 
 ### Full configuration
 

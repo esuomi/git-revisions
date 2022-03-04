@@ -52,13 +52,6 @@
   (when (= "env" (namespace part))
     (System/getenv (str/upper-case (name part)))))
 
-(defn lookup-gen
-  "Generates a dynamic value for supported lookup `parts`."
-  [part]
-  (when (= "gen" (namespace part))
-    (case (name part)
-      "timestamp" "2022-02-22")))
-
 (defn- lookup-group
   "Returns a `part` `lookup function` using the provided [java.util.regex.Matcher][Matcher] as a backing source for
    the values.
@@ -170,7 +163,6 @@
   (let [git (merge git
                    {:unversioned? (nil? git)}
                    {:untagged?    (nil? tag)})
-
         {:keys [tag-pattern pattern constants adjustments] :as config}
         (cond (keyword? format) (get predefined-formats format)
               (map? format)     format) ; TODO: else "unsupported format <blaa>"
@@ -180,7 +172,6 @@
                                       (lookup-group (re-matcher (or tag-pattern #"$^") (or tag "")))
                                       lookup-calver
                                       lookup-datetime
-                                      lookup-gen
                                       lookup-env)
         adjustments          (create-adjustments adjustments lookup adjust)
         into-version-segment (resolve-and-adjust lookup adjustments)]
