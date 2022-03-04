@@ -1,9 +1,8 @@
 (ns lein-git-revisions.plugin
-  (:require [clojure.java.shell :refer [with-sh-dir]]
-            [clojure.string :as str]
-            [cuddlefish.core :as git])
-  (:import (java.util.regex Matcher Pattern)
-           (java.time LocalDateTime Clock Year Month LocalDate ZonedDateTime)
+  (:require [clojure.java.shell :as sh :refer [with-sh-dir]]
+            [clojure.string :as str])
+  (:import (java.util.regex Matcher)
+           (java.time LocalDateTime Clock Year Month LocalDate)
            (java.time.format DateTimeFormatter)))
 
 (defn map->nsmap
@@ -188,17 +187,49 @@
       (partition 2 pattern))))
 ; TODO: write revision file
 
+(defn git-context
+  [tag-pattern]
+  (merge
+    ; extract current commit
+    (let [head-rev (sh/sh "git" "rev-parse" "HEAD")]
+      (if (= 0 (:exit head-rev))
+        {:unversioned? false :ref (str/trim (:out head-rev))}
+        {:unversioned? true}))
+
+    ; extract tree metadata
+    (let [describe (sh/sh "git" "describe" "--tags" "--dirty" "--long")]
+      (when (= 0 (:exit describe))
+        (let [[_ _ ahead ref-short dirty] (re-find #"(.*)-(\d+)-g([0-9a-f]*)((-dirty)?)" (:out describe))]
+          {:ahead     (Integer/parseInt ahead)
+           :ahead?    (not= ahead "0")
+           :ref-short ref-short
+           :dirty?    (not= "" dirty)})))
+
+    ; extract current branch
+    (let [branch (sh/sh "git" "rev-parse" "--abbrev-ref" "HEAD")]
+      (when (= 0 (:exit branch))
+        {:branch (str/trim (:out branch))}))
+
+    ; extract previous matching tag (if any)
+    (when tag-pattern
+      (let [tags (sh/sh "git" "--no-pager"
+                        "log" "--tags" "--no-walk" "--date=iso-local" "--pretty='%H%d")]
+        (if (= 0 (:exit tags))
+          (reduce
+            (fn [_ r]
+              (let [[_ tag-ref tags] (re-find #"^'([a-z0-9]+) \(tag\: (.+)\)$" r)]
+                (when (re-matches tag-pattern tags)
+                  (reduced {:untagged? false :tag-ref tag-ref :tag (str/trim tags)}))))
+            (-> (:out tags) (str/split #"\n")))
+          {:untagged? true})))))
+
 (defn middleware
   ; TODO: some minimal default config
   [{:keys           [git-revisions root]
     :as             project}]
   (with-sh-dir root
     (let [{:keys [format adjust]} git-revisions
-          git-config              {:git               "git"
-                                   :describe-pattern  git/git-describe-pattern}
-          git-context             (-> (git/status git-config)
-                                      (dissoc :version)
-                                      (assoc :branch (git/current-branch git-config)))]
+          git-context             (git-context (:tag-pattern format))]
 
   (-> project
       (assoc :version (revision-generator git-context format adjust))))))

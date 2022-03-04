@@ -42,10 +42,11 @@ Conditionally available:
  -
  - `:git/ref` Current commit's reference hash, implementation specific on used Git version and configuration, most likely SHA-1
  - `:git/ref-short` Short hash of the current commit
+ - `:git/tag` Latest known visible tag which matches the [Tag pattern](../README.md#tag-pattern-tag-pattern)
+ - `:git/tag-ref` Reference has the tag points to
  - `:git/dirty?` Working tree has local modifications
  - `:git/ahead?` Is current HEAD ahead of its upstream
  - `:git/ahead` How many commits ahead the current HEAD is
- - `:git/tag` Latest known visible tag which matches the [Tag pattern](../README.md#tag-pattern-tag-pattern)
  - `:git/branch` Name of current branch
 
 ## Common Constants (`:constants/*`)
