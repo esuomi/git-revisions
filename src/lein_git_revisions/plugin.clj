@@ -3,7 +3,7 @@
             [clojure.string :as str]
             [cuddlefish.core :as git])
   (:import (java.util.regex Matcher Pattern)
-           (java.time LocalDateTime Clock Year Month LocalDate)
+           (java.time LocalDateTime Clock Year Month LocalDate ZonedDateTime)
            (java.time.format DateTimeFormatter)))
 
 (defn map->nsmap
@@ -92,24 +92,35 @@
   [pattern dt]
   (.format (DateTimeFormatter/ofPattern pattern) dt))
 
-(defmulti dt-formatter (fn [pattern _] pattern))
+(defmulti calver-formatter (fn [pattern _] pattern))
 
-(defmethod dt-formatter "yyyy" [_ d] (format "%04d" (-> (Year/from d) .getValue)))
-(defmethod dt-formatter "yy" [_ d] (-> (Year/from d) (.minusYears 2000) .getValue str))
-(defmethod dt-formatter "y0" [_ d] (format "%02d" (-> (Year/from d) (.minusYears 2000) .getValue)))
-(defmethod dt-formatter "mm" [_ d] (format-as "M" d))
-(defmethod dt-formatter "m0" [_ d] (format "%02d" (-> (Month/from d) .getValue)))
-(defmethod dt-formatter "ww" [_ d] (format-as "w" d))
-(defmethod dt-formatter "w0" [_ d] (format-as "ww" d))
-(defmethod dt-formatter "dd" [_ d] (format-as "d" d))
-(defmethod dt-formatter "d0" [_ d] (format-as "dd" d))
+(defmethod calver-formatter "yyyy" [_ d] (format "%04d" (-> (Year/from d) .getValue)))
+(defmethod calver-formatter "yy" [_ d] (-> (Year/from d) (.minusYears 2000) .getValue str))
+(defmethod calver-formatter "y0" [_ d] (format "%02d" (-> (Year/from d) (.minusYears 2000) .getValue)))
+(defmethod calver-formatter "mm" [_ d] (format-as "M" d))
+(defmethod calver-formatter "m0" [_ d] (format "%02d" (-> (Month/from d) .getValue)))
+(defmethod calver-formatter "ww" [_ d] (format-as "w" d))
+(defmethod calver-formatter "w0" [_ d] (format-as "ww" d))
+(defmethod calver-formatter "dd" [_ d] (format-as "d" d))
+(defmethod calver-formatter "d0" [_ d] (format-as "dd" d))
 
 (defn lookup-calver
   "[CalVer](https://calver.org/) pattern lookup, wherein the `part` is normalized to lowercase to support both
   semantically correct patterns and Clojure's keyword idioms."
   [part]
   (when (= "calver" (namespace part))
-    (dt-formatter (str/lower-case (name part)) (LocalDate/now *clock*))))
+    (calver-formatter (str/lower-case (name part)) (LocalDate/now *clock*))))
+
+(defn lookup-datetime
+  [part]
+  (when (= "dt" (namespace part))
+    (case (name part)
+      "year"   (-> (Year/now *clock*) .getValue str)
+      "month"  (-> (LocalDate/now *clock*) .getMonth .getValue str)
+      "day"    (-> (LocalDate/now *clock*) .getDayOfMonth str)
+      "hour"   (-> (LocalDateTime/now *clock*) .getHour str)
+      "minute" (-> (LocalDateTime/now *clock*) .getMinute str)
+      "second" (-> (LocalDateTime/now *clock*) .getSecond str))))
 
 (defn- resolve-part
   "Resolve a single revision `part` possibly using the provided `lookup function`. Returns either the resolved
@@ -167,6 +178,8 @@
         lookup               (some-fn (map->nsmap constants "constants")
                                       (map->nsmap git "git")
                                       (lookup-group (re-matcher (or tag-pattern #"$^") (or tag "")))
+                                      lookup-calver
+                                      lookup-datetime
                                       lookup-gen
                                       lookup-env)
         adjustments          (create-adjustments adjustments lookup adjust)
