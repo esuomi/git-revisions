@@ -1,20 +1,45 @@
 # lein-git-revisions
 
 [![Deploy to Clojars](https://github.com/esuomi/lein-git-revisions/actions/workflows/deploy.yaml/badge.svg)](https://github.com/esuomi/lein-git-revisions/actions/workflows/deploy.yaml)
-[![Clojars Project](https://img.shields.io/clojars/v/fi.polycode/lein-git-revisions.svg)](https://clojars.org/fi.polycode/lein-git-revisions)
+![Clojars Version (including pre-releases)](https://img.shields.io/clojars/v/fi.polycode/lein-git-revisions)
 [![cljdoc badge](https://cljdoc.org/badge/fi.polycode/lein-git-revisions)](https://cljdoc.org/jump/release/fi.polycode/lein-git-revisions)
 
 Automatically control Leiningen project version based on Git metadata.
+
+## Table of Contents
+
+* [Quick Start](#quick-start)
+    + [0. Prerequisites](#0-prerequisites)
+        - [Initial revision tag must already exist in repository](#initial-revision-tag-must-already-exist-in-repository)
+    + [1. Configure the plugin](#1-configure-the-plugin)
+    + [2. Choose a format](#2-choose-a-format)
+* [Advanced usage](#advanced-usage)
+    + [Glossary](#glossary)
+    + [Resolution logic](#resolution-logic)
+    + [Available lookups](#available-lookups)
+    + [Full configuration](#full-configuration)
+        - [Format (`:format`)](#format----format--)
+            * [Tag Pattern (`:tag-pattern`)](#tag-pattern----tag-pattern--)
+            * [Revision pattern (`:pattern`)](#revision-pattern----pattern--)
+            * [Revision adjustments (`:adjustments`)](#revision-adjustments----adjustments--)
+            * [Common constants (`:constants`)](#common-constants----constants--)
+        - [Adjust selector (`:adjust`)](#adjust-selector----adjust--)
+* [Motivation, prior art and differences](#motivation--prior-art-and-differences)
+* [Acknowledgements](#acknowledgements)
+* [License](#license)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 
 ## Quick Start
 
 We assume you'll want to follow [Semantic Versioning](https://semver.org/).
 
-## Prerequisites
+### 0. Prerequisites
 
-### Tag matching to expected tag pattern must exist in repository in advance
+#### Initial revision tag must already exist in repository
 
-If no tags exist yet, we recommend adding an all-zeroes tag such as `v0.0.0` to any commit:
+If no tags exist yet, add an all-zeroes tag such as `v0.0.0` to any commit:
 ````shell
 git tag -a v0.0.0 -m "initial version"
 ````
@@ -27,9 +52,9 @@ v3.0.1-28-gf2e808057  # this repository has the tag v3.0.1
 
 Suitable format for the tag is dependent on [Configuration/Tag Pattern](#tag-pattern-tag-pattern).
 
-## Quick Start
+### 1. Configure the plugin
 
-Simply add the plugin to your `:plugins` vector:
+Add the plugin to your `:plugins` vector:
 ```clojure
 :plugins [[fi.polycode/lein-git-revisions "LATEST"]
           ...]
@@ -41,8 +66,7 @@ and default configuration
                 :adjust [:env/project_revision_adjustment :minor]}
 ```
 
-This automatically registers the plugin middleware which handles the version string generation and applies the Semantic
-Versioning scheme.
+This automatically registers the plugin middleware.
 
 Additionally, you may want to set project version to a dummy string to highlight the fact it's controlled elsewhere:
 ```clojure
@@ -53,7 +77,23 @@ Additionally, you may want to set project version to a dummy string to highlight
 > The version must be a string for IDE compatability. For example Cursive makes assumptions based on the version always
 > being a string.
 
-## Glossary
+### 2. Choose a format
+
+> In a hurry? Start with either `:semver` or `:commit-hash`
+
+```clojure
+:git-revisions {:format :choose-your-format}
+```
+
+You can either use a built-in pattern or make your own. Built-ins are heavily opinionated, so if you have a bit of time,
+it is highly recommended for you to define your own.
+
+The built-ins are documented separately in
+[Built-in formats](docs/built-ins.md), instructions for defining your own are below.
+
+## Advanced usage
+
+### Glossary
 
  - **lookup** Is a function which can resolve a value based on given keyword's namespace.
  - **revision** Is an alternate word for _version_ chosen for semantics; this plugin can in theory support any
@@ -63,9 +103,9 @@ Additionally, you may want to set project version to a dummy string to highlight
  - **part** is a single token in revision segment, eg. MAJOR version number in Semantic Versioning.
  - **resolution/generation** The general process of producing the version string.
 
-## Execution logic explained
+### Resolution logic
 
-There's roughly three phases in the plugin's execution:
+There's roughly three phases in the plugin's resolution process:
 
  1. **Lookup generation and gathering.** The plugin starts by creating lookup sources which can then be referenced in
     the configuration.
@@ -83,9 +123,13 @@ example `:env/user` looks up the value of environment variable `USER`.
  - `:rev/*` Lookup a value from [Tag pattern](#tag-pattern-tag-pattern) based on named capture group
  - `:git/*` Properties matching the current Git state, such as previous tag, versioning status, ahead/dirty...
  - `:constants/*` See [Common constants](#common-constants-constants)
- - `:gen/*` Miscellanous values generated during runtime
+ - `:calver/*` Support [Calendar Versioning](https://calver.org/) patterns. Note that due to Clojure keyword limitations
+   the zero-padding patterns are flipped, so `0M` is `:calver/m0` and so on.
+ - `:dt/*` Common datetime parts, from current year to current second.
 
-## Configuration
+More in-depth documentation for lookups is available in [Available Lookups](docs/lookups.md).
+
+### Full configuration
 
 Top-level configuration is as follows:
 ```clojure
@@ -96,7 +140,7 @@ Top-level configuration is as follows:
 ```
 
 
-### Format (`:format`)
+#### Format (`:format`)
 
 Use either a predefined built-in pattern:
 ```clojure
@@ -111,8 +155,9 @@ or define your own:
 ```
 
  - `:semver` is built-in configuration set for the [Semantic Versioning](https://semver.org/) scheme.
+ - `:commit-hash` is built-in configuration for using Git commit hash as-is as the version string.
 
-#### Tag Pattern (`:tag-pattern`)
+##### Tag Pattern (`:tag-pattern`)
 
 Regular expression with named groups. Used as lookup source for `:rev/*` keys.
 
@@ -122,7 +167,7 @@ Regular expression with named groups. Used as lookup source for `:rev/*` keys.
           :pattern     [:segment/always [:rev/everything]]}}
 ```
 
-#### Revision pattern (`:pattern`)
+##### Revision pattern (`:pattern`)
 
 Vector of segments expressed as implicit, ordered pairing of segment directives and segment parts for the pattern.
 
@@ -148,7 +193,7 @@ or more practical
 ```
 
 
-#### Revision adjustments (`:adjustments`)
+##### Revision adjustments (`:adjustments`)
 
 Map of labeled adjustments to be executed conditionally during resolution based on lookup context.
 
@@ -178,7 +223,7 @@ Available operations for adjustments are
  - `:inc` Increment numeric part by one
  - `:clear` Always use `0` as value
 
-#### Common constants (`:constants`)
+##### Common constants (`:constants`)
 
 Define constants to be used for revision string resolution.
 
@@ -188,7 +233,7 @@ Define constants to be used for revision string resolution.
 ; resulting revision is always "Pepsi"
 ```
 
-### Adjust selector (`:adjust`)
+#### Adjust selector (`:adjust`)
 
 Control the modification of the revision string based on external information, such as environment variable set by
 Continuous Integration. Should be set so that last value is some known adjustment to ensure the revision automatically
