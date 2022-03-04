@@ -54,7 +54,7 @@ Suitable format for the tag is dependent on [Configuration/Tag Pattern](#tag-pat
 
 ### 1. Configure the plugin
 
-Simply add the plugin to your `:plugins` vector:
+Add the plugin to your `:plugins` vector:
 ```clojure
 :plugins [[fi.polycode/lein-git-revisions "LATEST"]
           ...]
@@ -153,6 +153,7 @@ or define your own:
 ```
 
  - `:semver` is built-in configuration set for the [Semantic Versioning](https://semver.org/) scheme.
+ - `:commit-hash` is built-in configuration for using Git commit hash as-is as the version string.
 
 ##### Tag Pattern (`:tag-pattern`)
 
