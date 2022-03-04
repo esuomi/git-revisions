@@ -8,7 +8,7 @@
 
   :eval-in-leiningen true
 
-  :dependencies [[me.arrdem/cuddlefish "0.1.0"]]
+  :dependencies []
 
   :deploy-repositories [["clojars" {:sign-releases false
                                     :url           "https://clojars.org/repo"
