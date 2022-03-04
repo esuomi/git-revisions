@@ -17,7 +17,7 @@
 
   :global-vars {*warn-on-reflection* true}
 
-  :plugins [[fi.polycode/lein-git-revisions "LATEST"]
+  :plugins [[fi.polycode/lein-git-revisions "0.2.4"]
             [lein-pprint "1.3.2"]]
 
   :git-revisions {:format :semver
