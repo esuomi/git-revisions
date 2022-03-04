@@ -154,39 +154,6 @@
                               k))))
          (filter (complement nil?))
          first)))
-
-(defn revision-generator
-  [{:keys [tag] :as git}
-   format
-   adjust]
-  (let [git (merge git
-                   {:unversioned? (nil? git)}
-                   {:untagged?    (nil? tag)})
-        {:keys [tag-pattern pattern constants adjustments] :as config}
-        (cond (keyword? format) (get predefined-formats format)
-              (map? format)     format) ; TODO: else "unsupported format <blaa>"
-
-        lookup               (some-fn (map->nsmap constants "constants")
-                                      (map->nsmap git "git")
-                                      (lookup-group (re-matcher (or tag-pattern #"$^") (or tag "")))
-                                      lookup-calver
-                                      lookup-datetime
-                                      lookup-env)
-        adjustments          (create-adjustments adjustments lookup adjust)
-        into-version-segment (resolve-and-adjust lookup adjustments)]
-    (reduce
-      (fn [acc [directive format]]
-        (str acc (case directive
-                   :segment/always   (reduce into-version-segment "" format)
-                   :segment/when     (when (lookup (first format))
-                                       (reduce into-version-segment "" (rest format)))
-                   :segment/when-not (when-not (lookup (first format))
-                                       (reduce into-version-segment "" (rest format)))
-                   "")))  ; TODO: what could be good default?
-      ""
-      (partition 2 pattern))))
-; TODO: write revision file
-
 (defn git-context
   [tag-pattern]
   (merge
@@ -211,25 +178,54 @@
         {:branch (str/trim (:out branch))}))
 
     ; extract previous matching tag (if any)
-    (when tag-pattern
-      (let [tags (sh/sh "git" "--no-pager"
-                        "log" "--tags" "--no-walk" "--date=iso-local" "--pretty='%H%d")]
-        (if (= 0 (:exit tags))
-          (reduce
-            (fn [_ r]
-              (let [[_ tag-ref tags] (re-find #"^'([a-z0-9]+) \(tag\: (.+)\)$" r)]
-                (when (re-matches tag-pattern tags)
-                  (reduced {:untagged? false :tag-ref tag-ref :tag (str/trim tags)}))))
-            (-> (:out tags) (str/split #"\n")))
-          {:untagged? true})))))
+    (let [tags (sh/sh "git" "--no-pager"
+                      "log" "--tags" "--no-walk" "--date=iso-local" "--pretty='%H%d")]
+      (if (= 0 (:exit tags))
+        (reduce
+          (fn [defaults r]
+            (let [[_ tag-ref tags] (re-find #"^'([a-z0-9]+) \(tag\: (.+)\)$" r)]
+              (if (and (some? tag-pattern) (re-matches tag-pattern (str/trim tags)))
+                (reduced {:untagged? false :tag-ref tag-ref :tag (str/trim tags)})
+                defaults)))
+          {:untagged? true}
+          (-> (:out tags) (str/split #"\n")))
+        {:untagged? true}))))
+
+(defn revision-generator
+  [format
+   adjust]
+  (let [{:keys [tag-pattern pattern constants adjustments] :as config}
+        (cond (keyword? format) (get predefined-formats format)
+              (map? format)     format) ; TODO: else "unsupported format <blaa>"
+
+        git-context          (git-context tag-pattern)
+
+        lookup               (some-fn (map->nsmap constants "constants")
+                                      (map->nsmap git-context "git")
+                                      (lookup-group (re-matcher (or tag-pattern #"$^") (or (:tag git-context) "")))
+                                      lookup-calver
+                                      lookup-datetime
+                                      lookup-env)
+        adjustments          (create-adjustments adjustments lookup adjust)
+        into-version-segment (resolve-and-adjust lookup adjustments)]
+    (reduce
+      (fn [acc [directive format]]
+        (str acc (case directive
+                   :segment/always   (reduce into-version-segment "" format)
+                   :segment/when     (when (lookup (first format))
+                                       (reduce into-version-segment "" (rest format)))
+                   :segment/when-not (when-not (lookup (first format))
+                                       (reduce into-version-segment "" (rest format)))
+                   "")))  ; TODO: what could be good default?
+      ""
+      (partition 2 pattern))))
+; TODO: write revision file
 
 (defn middleware
   ; TODO: some minimal default config
   [{:keys           [git-revisions root]
     :as             project}]
   (with-sh-dir root
-    (let [{:keys [format adjust]} git-revisions
-          git-context             (git-context (:tag-pattern format))]
-
+    (let [{:keys [format adjust]} git-revisions]
   (-> project
-      (assoc :version (revision-generator git-context format adjust))))))
+      (assoc :version (revision-generator format adjust))))))
