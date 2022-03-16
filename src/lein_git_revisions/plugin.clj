@@ -183,7 +183,7 @@
       (if (= 0 (:exit tags))
         (reduce
           (fn [defaults r]
-            (let [[_ tag-ref tags] (re-find #"^'([a-z0-9]+) \(tag\: (.+)\)$" r)]
+            (let [[_ tag-ref tags] (re-find #"^'([a-z0-9]+) \(.*tag\: (.+)\)$" r)]
               (if (and (some? tag-pattern) (re-matches tag-pattern (str/trim tags)))
                 (reduced {:untagged? false :tag-ref tag-ref :tag (str/trim tags)})
                 defaults)))
