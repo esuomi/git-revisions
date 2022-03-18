@@ -1,6 +1,8 @@
 (ns lein-git-revisions.plugin
   (:require [clojure.java.shell :as sh :refer [with-sh-dir]]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.java.io :as io]
+            [gap.nio :as nio])
   (:import (java.util.regex Matcher)
            (java.time LocalDateTime Clock Year Month LocalDate)
            (java.time.format DateTimeFormatter)))
@@ -154,6 +156,7 @@
                               k))))
          (filter (complement nil?))
          first)))
+
 (defn git-context
   [tag-pattern]
   (merge
@@ -191,41 +194,61 @@
           (-> (:out tags) (str/split #"\n")))
         {:untagged? true}))))
 
+(defn- write-revision-file
+  [root file content]
+  (let [root-path (->> (nio/->path root) .toAbsolutePath)
+        target    (->> (nio/->path file)
+                       (.resolve root-path)
+                       .toAbsolutePath
+                       .normalize)]
+    ; don't allow writing outside project dir
+    (when (nio/starts-with? target root-path)
+      (nio/make-parents target)
+      (with-open [writer (nio/writer target)]
+        (binding [*out* writer]
+          (prn content))))))
+
 (defn revision-generator
-  [format
-   adjust]
+  [format adjust revision-file]
   (let [{:keys [tag-pattern pattern constants adjustments] :as config}
         (cond (keyword? format) (get predefined-formats format)
               (map? format)     format) ; TODO: else "unsupported format <blaa>"
 
-        git-context          (git-context tag-pattern)
-
-        lookup               (some-fn (map->nsmap constants "constants")
-                                      (map->nsmap git-context "git")
-                                      (lookup-group (re-matcher (or tag-pattern #"$^") (or (:tag git-context) "")))
+        constants            (map->nsmap constants "constants")
+        git-context          (map->nsmap (git-context tag-pattern) "git")
+        lookup               (some-fn constants
+                                      git-context
+                                      (lookup-group (re-matcher (or tag-pattern #"$^") (or (:git/tag git-context) "")))
                                       lookup-calver
                                       lookup-datetime
                                       lookup-env)
         adjustments          (create-adjustments adjustments lookup adjust)
-        into-version-segment (resolve-and-adjust lookup adjustments)]
-    (reduce
-      (fn [acc [directive format]]
-        (str acc (case directive
-                   :segment/always   (reduce into-version-segment "" format)
-                   :segment/when     (when (lookup (first format))
-                                       (reduce into-version-segment "" (rest format)))
-                   :segment/when-not (when-not (lookup (first format))
-                                       (reduce into-version-segment "" (rest format)))
-                   "")))  ; TODO: what could be good default?
-      ""
-      (partition 2 pattern))))
-; TODO: write revision file
+        into-version-segment (resolve-and-adjust lookup adjustments)
+        revision-string      (reduce
+                               (fn [acc [directive format]]
+                                 (str acc (case directive
+                                            :segment/always   (reduce into-version-segment "" format)
+                                            :segment/when     (when (lookup (first format))
+                                                                (reduce into-version-segment "" (rest format)))
+                                            :segment/when-not (when-not (lookup (first format))
+                                                                (reduce into-version-segment "" (rest format)))
+                                            "")))  ; TODO: what could be good default?
+                               ""
+                               (partition 2 pattern))]
+    (when (some? revision-file)
+      (write-revision-file
+        (:project-root revision-file)
+        (:output-path revision-file)
+        (merge git-context {:revision revision-string})))
+    revision-string))
 
 (defn middleware
   ; TODO: some minimal default config
   [{:keys           [git-revisions root]
     :as             project}]
   (with-sh-dir root
-    (let [{:keys [format adjust]} git-revisions]
+    (let [{:keys [format adjust revision-file]} git-revisions]
   (-> project
-      (assoc :version (revision-generator format adjust))))))
+      (assoc :version (revision-generator format adjust (when (some? revision-file)
+                                                          {:output-path  revision-file
+                                                           :project-root (:root project)})))))))

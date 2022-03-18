@@ -8,27 +8,29 @@ Automatically control Leiningen project version based on Git metadata.
 
 ## Table of Contents
 
-* [Quick Start](#quick-start)
-    + [0. Prerequisites](#0-prerequisites)
-        - [Initial revision tag must already exist in repository](#initial-revision-tag-must-already-exist-in-repository)
-    + [1. Configure the plugin](#1-configure-the-plugin)
-    + [2. Choose a format](#2-choose-a-format)
-* [Advanced usage](#advanced-usage)
-    + [Glossary](#glossary)
-    + [Resolution logic](#resolution-logic)
-    + [Available lookups](#available-lookups)
-    + [Full configuration](#full-configuration)
-        - [Format (`:format`)](#format----format--)
-            * [Tag Pattern (`:tag-pattern`)](#tag-pattern----tag-pattern--)
-            * [Revision pattern (`:pattern`)](#revision-pattern----pattern--)
-            * [Revision adjustments (`:adjustments`)](#revision-adjustments----adjustments--)
-            * [Common constants (`:constants`)](#common-constants----constants--)
-        - [Adjust selector (`:adjust`)](#adjust-selector----adjust--)
-* [Motivation, prior art and differences](#motivation--prior-art-and-differences)
-* [Acknowledgements](#acknowledgements)
-* [License](#license)
+ * [Quick Start](#quick-start)
+     + [0. Prerequisites](#0-prerequisites)
+         - [Initial revision tag must already exist in repository](#initial-revision-tag-must-already-exist-in-repository)
+     + [1. Configure the plugin](#1-configure-the-plugin)
+     + [2. Choose a format](#2-choose-a-format)
+ * [Advanced usage](#advanced-usage)
+     + [Glossary](#glossary)
+     + [Resolution logic](#resolution-logic)
+     + [Available lookups](#available-lookups)
+     + [Full configuration](#full-configuration)
+         - [Format (`:format`)](#format----format--)
+             * [Tag Pattern (`:tag-pattern`)](#tag-pattern----tag-pattern--)
+             * [Revision pattern (`:pattern`)](#revision-pattern----pattern--)
+             * [Revision adjustments (`:adjustments`)](#revision-adjustments----adjustments--)
+             * [Common constants (`:constants`)](#common-constants----constants--)
+         - [Adjust selector (`:adjust`)](#adjust-selector----adjust--)
+         - [Revision metadata output file (`:revision-file`)](#revision-metadata-output-file----revision-file--)
+ * [Motivation, prior art and differences](#motivation--prior-art-and-differences)
+ * [Acknowledgements](#acknowledgements)
+ * [License](#license)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 
 
 ## Quick Start
@@ -62,8 +64,9 @@ Add the plugin to your `:plugins` vector:
 
 and default configuration
 ```clojure
-:git-revisions {:format :semver
-                :adjust [:env/project_revision_adjustment :minor]}
+:git-revisions {:format        :semver
+                :adjust        [:env/project_revision_adjustment :minor]
+                :revision-file "resources/metadata.edn"}
 ```
 
 This automatically registers the plugin middleware.
@@ -247,6 +250,20 @@ of the plugin.
  :adjust [:bump]}
 ; For tag v27 produces revision v28
 ```
+
+#### Revision metadata output file (`:revision-file`)
+
+Capture plugin's metadata into a file and use it as static source for metadata API endpoint, or with another plugin, in
+template substitutions or whatever else you come up with.
+
+```clojure
+{:revision-file "resources/metadata.edn"
+ ...}
+```
+
+Git metadata and the produced version string is written to the file.
+
+> The given path must resolve as absolute path within the current project root.
 
 ## Motivation, prior art and differences
 

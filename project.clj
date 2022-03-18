@@ -20,5 +20,6 @@
   :plugins [[fi.polycode/lein-git-revisions "LATEST"]
             [lein-pprint "1.3.2"]]
 
-  :git-revisions {:format :semver
-                  :adjust [:env/lein_revisions_adjustments :minor]})
+  :git-revisions {:format        :semver
+                  :adjust        [:env/lein_revisions_adjustments :minor]
+                  :revision-file "resources/metadata.edn"})
