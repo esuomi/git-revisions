@@ -39,7 +39,7 @@
 
   (testing "all supported patterns can be used in format"
     (with-bindings {#'plugin/*clock* (fix-clock-to 2022 11 3 7 44 55)}
-      (is (= "2022-22-22-11-11-44-44-3-03" (plugin/revision-generator {} {:pattern [:segment/always [:calver/yyyy "-" :calver/yy "-" :calver/y0 "-" :calver/mm "-" :calver/m0 "-" :calver/ww "-" :calver/w0 "-" :calver/dd "-" :calver/d0]]} nil))))))
+      (is (= "2022-22-22-11-11-44-44-3-03" (plugin/revision-generator {:pattern [:segment/always [:calver/yyyy "-" :calver/yy "-" :calver/y0 "-" :calver/mm "-" :calver/m0 "-" :calver/ww "-" :calver/w0 "-" :calver/dd "-" :calver/d0]]} nil nil))))))
 
 (deftest datetime-lookup
   (testing "Most common datetime parts are supported"
@@ -53,4 +53,4 @@
 
   (testing "all supported patterns can be used in format"
     (with-bindings {#'plugin/*clock* (fix-clock-to 1985 10 16 6 12 0)}
-      (is (= "1985.10.16T6.12.0Z" (plugin/revision-generator {} {:pattern [:segment/always [:dt/year "." :dt/month "." :dt/day "T" :dt/hour "." :dt/minute "." :dt/second "Z"]]} nil))))))
+      (is (= "1985.10.16T6.12.0Z" (plugin/revision-generator {:pattern [:segment/always [:dt/year "." :dt/month "." :dt/day "T" :dt/hour "." :dt/minute "." :dt/second "Z"]]} nil nil))))))
