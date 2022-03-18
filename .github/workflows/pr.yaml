@@ -6,6 +6,9 @@ on:
     branches:
       - master
 
+env:
+  LEIN_USE_BOOTCLASSPATH: no
+
 jobs:
   clojure:
     runs-on: ubuntu-latest
