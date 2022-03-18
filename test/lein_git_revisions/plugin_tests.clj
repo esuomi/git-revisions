@@ -1,16 +1,15 @@
 (ns lein-git-revisions.plugin-tests
   (:require [clojure.test :refer :all]
             [lein-git-revisions.plugin :as plugin])
-  (:import (java.time Clock LocalDate ZoneId LocalDateTime)))
+  (:import (java.time Clock ZoneId ZonedDateTime)))
 
 (defn- fix-clock-to
   ([^Long y ^Long m ^Long d]
    (fix-clock-to y m d 0 0 0))
   ([^Long y ^Long m ^Long d ^Long h ^Long mm ^Long s]
-   (let [dt (LocalDateTime/of y m d h mm s)
-         zo (-> (ZoneId/systemDefault) .getRules (.getOffset dt))]
-     (Clock/fixed (.toInstant dt zo)
-                  (ZoneId/systemDefault)))))
+   (-> (ZonedDateTime/of y m d h mm s 0 (ZoneId/systemDefault))
+       .toInstant
+       (Clock/fixed (ZoneId/systemDefault)))))
 
 (deftest calver-lookup-formatting
   (testing "Patterns for early 21st century date"
