@@ -24,3 +24,6 @@ node_modules/
 .shadow-cljs/
 
 .clj-kondo/cache/
+
+# project's example metadata file, not added to repository as that would be too much self-recursion
+resources/metadata.edn
