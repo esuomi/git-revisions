@@ -1,11 +1,10 @@
 (ns lein-git-revisions.plugin
   (:require [clojure.java.shell :as sh :refer [with-sh-dir]]
             [clojure.string :as str]
-            [clojure.java.io :as io]
             [gap.nio :as nio])
   (:import (java.util.regex Matcher)
            (java.time LocalDateTime Clock Year Month LocalDate)
-           (java.time.format DateTimeFormatter)))
+           (java.time.temporal WeekFields)))
 
 (defn map->nsmap
   "Namespaces all non-namespaced keys in the given map.
@@ -82,21 +81,19 @@
   testing purposes."
   (Clock/systemDefaultZone))
 
-(defn- format-as
-  [pattern dt]
-  (.format (DateTimeFormatter/ofPattern pattern) dt))
+(def ^:private week-of-week-based-year (.weekOfWeekBasedYear WeekFields/ISO))
 
 (defmulti calver-formatter (fn [pattern _] pattern))
 
-(defmethod calver-formatter "yyyy" [_ d] (format "%04d" (-> (Year/from d) .getValue)))
-(defmethod calver-formatter "yy" [_ d] (-> (Year/from d) (.minusYears 2000) .getValue str))
-(defmethod calver-formatter "y0" [_ d] (format "%02d" (-> (Year/from d) (.minusYears 2000) .getValue)))
-(defmethod calver-formatter "mm" [_ d] (format-as "M" d))
-(defmethod calver-formatter "m0" [_ d] (format "%02d" (-> (Month/from d) .getValue)))
-(defmethod calver-formatter "ww" [_ d] (format-as "w" d))
-(defmethod calver-formatter "w0" [_ d] (format-as "ww" d))
-(defmethod calver-formatter "dd" [_ d] (format-as "d" d))
-(defmethod calver-formatter "d0" [_ d] (format-as "dd" d))
+(defmethod calver-formatter "yyyy" [_ d] (->> (Year/from d) .getValue (format "%04d")))
+(defmethod calver-formatter "yy"   [_ d] (str           (-> (Year/from d) (.minusYears 2000) .getValue)))
+(defmethod calver-formatter "y0"   [_ d] (format "%02d" (-> (Year/from d) (.minusYears 2000) .getValue)))
+(defmethod calver-formatter "mm"   [_ d] (->> (Month/from d) .getValue str))
+(defmethod calver-formatter "m0"   [_ d] (->> (Month/from d) .getValue (format "%02d")))
+(defmethod calver-formatter "ww"   [_ d] (->> (.get d week-of-week-based-year) str))
+(defmethod calver-formatter "w0"   [_ d] (->> (.get d week-of-week-based-year) (format "%02d")))
+(defmethod calver-formatter "dd"   [_ d] (->> (.getDayOfMonth d) str))
+(defmethod calver-formatter "d0"   [_ d] (->> (.getDayOfMonth d) (format "%02d" )))
 
 (defn lookup-calver
   "[CalVer](https://calver.org/) pattern lookup, wherein the `part` is normalized to lowercase to support both

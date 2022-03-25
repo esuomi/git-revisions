@@ -20,6 +20,11 @@
   :plugins [[fi.polycode/lein-git-revisions "LATEST"]
             [lein-pprint "1.3.2"]]
 
+  :profiles {:dev {:dependencies [[lambdaisland/kaocha "1.64.1010"]
+                                  [lambdaisland/kaocha-cloverage "1.0.75"]]}}
+
   :git-revisions {:format        :semver
                   :adjust        [:env/lein_revisions_adjustments :minor]
-                  :revision-file "resources/metadata.edn"})
+                  :revision-file "resources/metadata.edn"}
+
+  :aliases {"kaocha" ["run" "-m" "kaocha.runner"]})
