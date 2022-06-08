@@ -23,7 +23,9 @@ node_modules/
 # shadow-cljs cache, port files
 .shadow-cljs/
 
-.clj-kondo/cache/
+# clj-kondo's cache, but not the (optional) configuration file itself
+.clj-kondo/**
+!.clj-kondo/config.edn
 
 # project's example metadata file, not added to repository as that would be too much self-recursion
 resources/metadata.edn
