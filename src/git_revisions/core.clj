@@ -189,7 +189,12 @@
                 defaults)))
           {:untagged? true}
           (-> (:out tags) (str/split #"\n")))
-        {:untagged? true}))))
+        {:untagged? true}))
+
+    ; extract current commit count
+    (let [commits (sh/sh "git" "rev-list" "HEAD" "--count")]
+      (when (= 0 (:exit commits))
+        {:branch (str/trim (:out commits))}))))
 
 (defn- write-revision-file
   [root file content]
