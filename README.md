@@ -1,10 +1,10 @@
-# lein-git-revisions
+# git-revisions
 
 [![Deploy to Clojars](https://github.com/esuomi/lein-git-revisions/actions/workflows/deploy.yaml/badge.svg)](https://github.com/esuomi/lein-git-revisions/actions/workflows/deploy.yaml)
 [![Clojars Project](https://img.shields.io/clojars/v/fi.polycode/lein-git-revisions.svg)](https://clojars.org/fi.polycode/lein-git-revisions)
 [![cljdoc badge](https://cljdoc.org/badge/fi.polycode/lein-git-revisions)](https://cljdoc.org/jump/release/fi.polycode/lein-git-revisions)
 
-Automatically control Leiningen project version based on Git metadata.
+Automatically control project version based on Git metadata.
 
 ## Table of Contents
 
