@@ -24,7 +24,7 @@
                                   [lambdaisland/kaocha-cloverage "1.0.75"]]}}
 
   :git-revisions {:format        :semver
-                  :adjust        [:env/lein_revisions_adjustments :minor]
+                  :adjust        [:env/git_revisions_adjustments :minor]
                   :revision-file "resources/metadata.edn"}
 
   :aliases {"kaocha" ["run" "-m" "kaocha.runner"]})
