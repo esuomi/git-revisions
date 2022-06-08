@@ -1,5 +1,5 @@
-(ns lein-git-revisions.plugin
-  (:require [clojure.java.shell :as sh :refer [with-sh-dir]]
+(ns git-revisions.core
+  (:require [clojure.java.shell :as sh]
             [clojure.string :as str]
             [gap.nio :as nio])
   (:import (java.util.regex Matcher)
@@ -239,13 +239,3 @@
         (merge git-context {:revision revision-string})))
     revision-string))
 
-(defn middleware
-  ; TODO: some minimal default config
-  [{:keys           [git-revisions root]
-    :as             project}]
-  (with-sh-dir root
-    (let [{:keys [format adjust revision-file]} git-revisions]
-  (-> project
-      (assoc :version (revision-generator format adjust (when (some? revision-file)
-                                                          {:output-path  revision-file
-                                                           :project-root (:root project)})))))))
