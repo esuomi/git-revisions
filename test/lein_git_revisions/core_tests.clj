@@ -1,6 +1,6 @@
-(ns lein-git-revisions.plugin-tests
+(ns lein-git-revisions.core-tests
   (:require [clojure.test :refer :all]
-            [lein-git-revisions.plugin :as plugin])
+            [git-revisions.core :as plugin])
   (:import (java.time Clock ZoneId ZonedDateTime)))
 
 (defn- fix-clock-to
