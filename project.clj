@@ -1,10 +1,10 @@
 (defproject fi.polycode/git-revisions "_"
-  :description "Automatically control Leiningen project version based on Git metadata."
+  :description "Generate software revision strings based on Git and system context data."
   :url "https://github.com/esuomi/git-revisions"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
 
-  :scm {:name "git" :url "https://github.com/esuomi/git-revisions-lein"}
+  :scm {:name "git" :url "https://github.com/esuomi/git-revisions"}
 
   :eval-in-leiningen true
 
@@ -24,7 +24,7 @@
                                   [lambdaisland/kaocha-cloverage "1.0.75"]]}}
 
   :git-revisions {:format        :semver
-                  :adjust        [:env/git_revisions_adjustments :minor]
+                  :adjust        [:env/CORE_REVISIONS_ADJUSTMENT :minor]
                   :revision-file "resources/metadata.edn"}
 
   :aliases {"kaocha" ["run" "-m" "kaocha.runner"]})
