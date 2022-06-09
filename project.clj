@@ -20,8 +20,8 @@
   :plugins [[fi.polycode/lein-git-revisions "LATEST"]
             [lein-pprint "1.3.2"]]
 
-  :profiles {:dev {:dependencies [[lambdaisland/kaocha "1.64.1010"]
-                                  [lambdaisland/kaocha-cloverage "1.0.75"]]}}
+  :profiles {:dev {:dependencies [[lambdaisland/kaocha "1.66.1034"]
+                                  [lambdaisland/kaocha-cloverage "1.0-45"]]}}
 
   :git-revisions {:format        :semver
                   :adjust        [:env/CORE_REVISIONS_ADJUSTMENT :minor]
