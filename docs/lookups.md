@@ -23,7 +23,7 @@ pattern are not guaranteed to be extracted if not used.
 
 ```clojure
 {:format {:tag-pattern #"(?<suffix>.{,3}).+$"
-          :pattern [:segment/always [:rev/suffix]]}}  ; up to three first characters of matching Git tag
+          :pattern     [:segment/always [:rev/suffix]]}}  ; up to three first characters of matching Git tag
 ;=> "v3." (for tag v3.1.0)
 ```
 
@@ -39,7 +39,7 @@ Always available:
  - `:git/untagged?` does a suitable - if any - Git tag exist? Usually this means no tags available, see [Prerequisites](../README.md#0-prerequisites)
 
 Conditionally available:
- -
+
  - `:git/ref` Current commit's reference hash, implementation specific on used Git version and configuration, most likely SHA-1
  - `:git/ref-short` Short hash of the current commit
  - `:git/tag` Latest known visible tag which matches the [Tag pattern](../README.md#tag-pattern-tag-pattern)
@@ -48,10 +48,11 @@ Conditionally available:
  - `:git/ahead?` Is current HEAD ahead of its upstream
  - `:git/ahead` How many commits ahead the current HEAD is
  - `:git/branch` Name of current branch
+ - `:git/commits` Commit count to current HEAD
 
 ## Common Constants (`:constants/*`)
 
-Mechanism for piggybacking constant values from build to the revision resolution process. See [Common constants](#common-constants-constants)
+Mechanism for piggybacking constant values from build to the revision resolution process.
 
 ## Calendar versioning schemes (`:calver/*`)
 
