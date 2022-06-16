@@ -35,8 +35,8 @@
 (def predefined-formats {:semver {:tag-pattern #"v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+).*$"
                                   :pattern     [:segment/when     [:git/untagged? :constants/unknown]
                                                 :segment/when     [:git/tag :rev/major "." :rev/minor "." :rev/patch]
-                                                :segment/when-not [:env/lein_revisions_release "-" :constants/ahead]
-                                                :segment/when     [:env/lein_revisions_prerelease "-" :env/lein_revisions_prerelease]
+                                                :segment/when-not [:env/revisions_release "-" :constants/ahead]
+                                                :segment/when     [:env/revisions_prerelease "-" :env/revisions_prerelease]
                                                 :segment/when     [:git/unversioned? "-" :constants/unversioned]]
                                   :adjustments {:major {:rev/major :inc :rev/minor :clear :rev/patch :clear}
                                                 :minor {:rev/minor :inc :rev/patch :clear}

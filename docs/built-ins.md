@@ -12,7 +12,7 @@ To use any built-in pattern, define plugin configuration's `:format` key as keyw
 
 ```clojure
 :git-revisions {:format :semver
-                :adjust [:env/lein_revisions_adjustment :minor]}
+                :adjust [:env/revisions_adjustment :minor]}
 ```
 
 Pattern which follows [Semantic Versioning](semver.org/). Most people know this as "Maven pattern", or "Aether pattern"
@@ -22,6 +22,10 @@ The format supports adjusting the resulting pattern with either `:major`, `:mino
 
 The format also has fallbacks for unversioned and unreleased projects, producing such revision patterns as
 `UNKNOWN-UNVERSIONED` and `UNKNOWN-SNAPSHOT` based on active context.
+
+Whenever `REVISIONS_RELEASE` environment variable is present, a non-snapshot release is assumed and build metadata is included in the version.
+
+Whenever `REVISIONS_PRERELEASE` environment variable is present, the value of the environment variable is used a prerelease identifier.
 
 Git tags are expected to be in format `vX.Y.Z`, where X, Y and Z are all positive integers.
 
