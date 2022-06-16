@@ -6,8 +6,6 @@
 
   :scm {:name "git" :url "https://github.com/esuomi/git-revisions"}
 
-  :eval-in-leiningen true
-
   :dependencies []
 
   :deploy-repositories [["clojars" {:sign-releases false
