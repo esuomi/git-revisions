@@ -8,7 +8,7 @@ on:
         default: 'minor'
 
 env:
-  LEIN_REVISIONS_RELEASE: true
+  REVISIONS_RELEASE: true
 
 jobs:
   release:
