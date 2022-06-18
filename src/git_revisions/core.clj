@@ -198,7 +198,9 @@
 
 (defn- write-revision-file
   [root file content]
-  (let [root-path (->> (nio/->path root) .toAbsolutePath)
+  (let [root-path (->> (nio/->path root)
+                       .toAbsolutePath
+                       .normalize)
         target    (->> (nio/->path file)
                        (.resolve root-path)
                        .toAbsolutePath
