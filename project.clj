@@ -25,4 +25,4 @@
                   :adjust        [:env/CORE_REVISIONS_ADJUSTMENT :minor]
                   :revision-file "resources/metadata.edn"}
 
-  :aliases {"kaocha" ["run" "-m" "kaocha.runner"]})
+  :aliases {"kaocha" ["run" "-m" "kaocha.runner" "--junit-xml-file" "target/junit.xml"]})
