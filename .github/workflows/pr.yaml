@@ -31,3 +31,9 @@ jobs:
 
       - name: Run Unit tests
         run: lein kaocha unit
+
+      - name: Publish test report
+        if: always()
+        uses: mikepenz/action-junit-report@v3
+        with:
+          report_paths: 'target/junit.xml'

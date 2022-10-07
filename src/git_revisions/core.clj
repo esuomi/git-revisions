@@ -154,17 +154,23 @@
          (filter (complement nil?))
          first)))
 
+(def gitcmd-current-commit '("git" "rev-parse" "HEAD"))
+(def gitcmd-tree-metadata '("git" "describe" "--tags" "--dirty" "--long"))
+(def gitcmd-current-branch '("git" "rev-parse" "--abbrev-ref" "HEAD"))
+(def gitcmd-previous-tag '("git" "--no-pager" "log" "--tags" "--no-walk" "--date=iso-local" "--pretty='%H%d"))
+(def gitcmd-commits '("git" "rev-list" "HEAD" "--count"))
+
 (defn git-context
   [tag-pattern]
   (merge
     ; extract current commit
-    (let [head-rev (sh/sh "git" "rev-parse" "HEAD")]
+    (let [head-rev (apply sh/sh gitcmd-current-commit)]
       (if (= 0 (:exit head-rev))
         {:unversioned? false :ref (str/trim (:out head-rev))}
         {:unversioned? true}))
 
     ; extract tree metadata
-    (let [describe (sh/sh "git" "describe" "--tags" "--dirty" "--long")]
+    (let [describe (apply sh/sh gitcmd-tree-metadata)]
       (when (= 0 (:exit describe))
         (let [[_ _ ahead ref-short dirty] (re-find #"(.*)-(\d+)-g([0-9a-f]*)((-dirty)?)" (:out describe))]
           {:ahead     (Integer/parseInt ahead)
@@ -173,28 +179,29 @@
            :dirty?    (not= "" dirty)})))
 
     ; extract current branch
-    (let [branch (sh/sh "git" "rev-parse" "--abbrev-ref" "HEAD")]
+    (let [branch (apply sh/sh gitcmd-current-branch)]
       (when (= 0 (:exit branch))
         {:branch (str/trim (:out branch))}))
 
     ; extract previous matching tag (if any)
-    (let [tags (sh/sh "git" "--no-pager"
-                      "log" "--tags" "--no-walk" "--date=iso-local" "--pretty='%H%d")]
+    (let [tags (apply sh/sh gitcmd-previous-tag)]
       (if (= 0 (:exit tags))
         (reduce
           (fn [defaults r]
-            (let [[_ tag-ref tags] (re-find #"^'([a-z0-9]+) \(.*tag\: (.+)\)$" r)]
-              (if (and (some? tag-pattern) (re-matches tag-pattern (str/trim tags)))
+            (if-let [[_ tag-ref tags] (re-find #"^'([a-z0-9]+) \(.*tag\: (.+)\)$" r)]
+              (if (and (some? tag-pattern)
+                       (re-matches tag-pattern (str/trim tags)))
                 (reduced {:untagged? false :tag-ref tag-ref :tag (str/trim tags)})
-                defaults)))
+                defaults)
+              {:untagged? true}))
           {:untagged? true}
           (-> (:out tags) (str/split #"\n")))
         {:untagged? true}))
 
     ; extract current commit count
-    (let [commits (sh/sh "git" "rev-list" "HEAD" "--count")]
+    (let [commits (apply sh/sh gitcmd-commits)]
       (when (= 0 (:exit commits))
-        {:commits (str/trim (:out commits))}))))
+        {:commits (Integer/parseInt (str/trim (:out commits)))}))))
 
 (defn- write-revision-file
   [root file content]
