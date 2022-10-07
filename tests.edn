@@ -1,1 +1,3 @@
-#kaocha/v1 {:tests [{:ns-patterns    ["-tests$"]}]}
+#kaocha/v1 {:tests [{:ns-patterns    ["-tests$"]}]
+            :plugins [:kaocha.plugin/junit-xml :kaocha.plugin/profiling :kaocha.plugin/capture-output]
+            :kaocha.plugin.junit-xml/add-location-metadata? true}
